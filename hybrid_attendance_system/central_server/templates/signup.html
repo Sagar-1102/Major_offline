@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sign Up</title>
+</head>
+
+<body>
+    <h2>Create Account</h2>
+    <form method="post"><input type="text" name="name" placeholder="Full Name" required><input type="email" name="email"
+            placeholder="Email" required><input type="password" name="password" placeholder="Password" required><select
+            name="department">{% for dept in departments %}<option value="{{ dept }}">{{ dept }}</option>{% endfor
+            %}</select><input type="number" name="year" placeholder="Year" required><button type="submit">Sign
+            Up</button></form>
+</body>
+
+</html>

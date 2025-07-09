@@ -1,0 +1,13 @@
+flask
+sqlalchemy
+werkzeug
+opencv-python
+deepface
+requests
+numpy
+tensorflow
+
+
+
+
+

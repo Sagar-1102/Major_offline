@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+</head>
+
+<body>
+    <h1>Welcome, {{ session.student_name }}</h1><a href="{{ url_for('logout') }}">Logout</a>
+    <hr>
+    <h2>Notices</h2>{% for notice in notices %}<div style="border:1px solid #ccc; padding:10px;">
+        <p>{{ notice.message }}</p><small>{{ notice.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+    </div>{% else %}<p>No notices.</p>{% endfor %}
+</body>
+
+</html>
