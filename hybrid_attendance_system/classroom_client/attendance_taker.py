@@ -80,8 +80,11 @@ def run_attendance_system():
 
             try:
                 results = DeepFace.represent(img_path=frame, model_name='FaceNet', detector_backend='mtcnn', enforce_detection=False)
-                for result in results:
-                    user_id, user_name = recognizer.find_matching_face(result['embedding'])
+                for result in results.get("results", results): # Accommodate different DeepFace versions
+                    # The actual embedding might be nested
+                    embedding = result.get('embedding', result)
+
+                    user_id, user_name = recognizer.find_matching_face(embedding)
                     
                     # Mark attendance only if the student hasn't been marked for this session
                     if user_id and user_id not in students_marked_this_session:
