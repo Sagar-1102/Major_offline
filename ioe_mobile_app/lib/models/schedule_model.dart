@@ -1,7 +1,7 @@
 class Schedule {
   final int id;
   final String subject;
-  final int dayOfWeek; // 0 = Monday, 6 = Sunday
+  final int dayOfWeek;
   final String startTime;
   final String endTime;
 
@@ -12,4 +12,15 @@ class Schedule {
     required this.startTime,
     required this.endTime,
   });
+
+  // Factory constructor to create a Schedule from JSON data
+  factory Schedule.fromJson(Map<String, dynamic> json) {
+    return Schedule(
+      id: json['id'],
+      subject: json['subject'],
+      dayOfWeek: json['dayOfWeek'],
+      startTime: json['startTime'],
+      endTime: json['endTime'],
+    );
+  }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ioe_mobile_app/services/auth_service.dart';
-import 'package:ioe_mobile_app/models/user_model.dart';
+import 'package:ioe_mobile_app/screens/signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,89 +11,94 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _isLoading = false;
+  final _emailController = TextEditingController(text: 'student@ioe.edu.np');
+  final _passwordController = TextEditingController(text: 'student123');
+  final _formKey = GlobalKey<FormState>();
 
-  Future<void> _login(UserRole role) async {
-    setState(() => _isLoading = true);
-    await Provider.of<AuthService>(context, listen: false).login(role);
-    // No need to set loading to false as the widget will be replaced
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _performLogin() async {
+    if (_formKey.currentState!.validate()) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final success = await authService.login(
+        _emailController.text,
+        _passwordController.text,
+      );
+
+      if (!success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed. Please check your credentials.'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset('assets/logo.png', height: 100),
                 const SizedBox(height: 20),
-                const Text(
-                  'IOE Attendance Portal',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Pulchowk Campus, Lalitpur',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
+                const Text('IOE Attendance Portal', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                 const SizedBox(height: 40),
-                if (_isLoading)
-                  const CircularProgressIndicator()
-                else
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Select a role to log in as:',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) => value!.isEmpty ? 'Please enter an email' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
+                  obscureText: true,
+                  validator: (value) => value!.isEmpty ? 'Please enter a password' : null,
+                ),
+                const SizedBox(height: 24),
+                authService.isLoading
+                    ? const CircularProgressIndicator()
+                    : SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _performLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text('Login', style: TextStyle(fontSize: 18, color: Colors.white)),
+                        ),
                       ),
-                      const SizedBox(height: 20),
-                      _buildLoginButton(
-                        'Log in as Admin',
-                        const Color(0xFF2563EB),
-                        () => _login(UserRole.admin),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildLoginButton(
-                        'Log in as CR',
-                        const Color(0xFF16A34A),
-                        () => _login(UserRole.cr),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildLoginButton(
-                        'Log in as Student',
-                        const Color(0xFF4B5563),
-                        () => _login(UserRole.student),
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have an account?"),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SignupScreen()));
+                      },
+                      child: const Text('Sign Up'),
+                    )
+                  ],
+                )
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildLoginButton(String text, Color color, VoidCallback onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
       ),
     );
   }

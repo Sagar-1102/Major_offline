@@ -4,7 +4,7 @@ import json
 import time
 import datetime
 
-CENTRAL_SERVER_URL = "http://192.168.1.100:5000" # CHANGE to your server's LAN IP
+CENTRAL_SERVER_URL = "http://127.0.0.1:5000"
 LOCAL_DB_PATH = 'local_database.db'
 CONFIG_FILE = 'sync_config.json'
 SYNC_INTERVAL = 900
