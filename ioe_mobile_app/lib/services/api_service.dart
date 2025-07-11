@@ -20,11 +20,18 @@ class ApiService {
     }
   }
 
-  Future<User> signup({required String name, required String email, required String password, required String department, required int year}) async {
+  Future<User> signup({
+    required String name, required String email, required String password,
+    required String department, required int? year, required UserRole role
+  }) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/signup'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'name': name, 'email': email, 'password': password, 'department': department, 'year': year}),
+      body: jsonEncode({
+          'name': name, 'email': email, 'password': password,
+          'department': department, 'year': year,
+          'role': role.name
+      }),
     );
     if (response.statusCode == 201) {
       return User.fromJson(jsonDecode(response.body));

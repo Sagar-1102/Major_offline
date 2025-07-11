@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:ioe_mobile_app/models/user_model.dart';
 import 'package:ioe_mobile_app/services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -10,12 +11,15 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _yearController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  
   String _selectedDepartment = 'BCT';
+  UserRole _selectedRole = UserRole.student;
+  
   final List<String> _departments = ["BCT", "BEI", "BCE", "BAG", "BAR", "BME", "BEL"];
 
   @override
@@ -35,7 +39,8 @@ class _SignupScreenState extends State<SignupScreen> {
         email: _emailController.text,
         password: _passwordController.text,
         department: _selectedDepartment,
-        year: int.parse(_yearController.text),
+        year: _selectedRole == UserRole.admin ? null : int.parse(_yearController.text),
+        role: _selectedRole,
       );
 
       if (success && mounted) {
@@ -65,6 +70,18 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                DropdownButtonFormField<UserRole>(
+                  value: _selectedRole,
+                  decoration: const InputDecoration(labelText: 'Role', border: OutlineInputBorder()),
+                  items: UserRole.values.map((UserRole role) {
+                    return DropdownMenuItem<UserRole>(
+                      value: role,
+                      child: Text(role.name.toUpperCase()),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) => setState(() => _selectedRole = newValue!),
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
@@ -94,12 +111,18 @@ class _SignupScreenState extends State<SignupScreen> {
                   onChanged: (newValue) => setState(() => _selectedDepartment = newValue!),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _yearController,
-                  decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder()),
-                  keyboardType: TextInputType.number,
-                  validator: (value) => value!.isEmpty ? 'Please enter your year' : null,
-                ),
+                if (_selectedRole != UserRole.admin)
+                  TextFormField(
+                    controller: _yearController,
+                    decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder()),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (_selectedRole != UserRole.admin && value!.isEmpty) {
+                        return 'Please enter your year';
+                      }
+                      return null;
+                    },
+                  ),
                 const SizedBox(height: 24),
                 authService.isLoading
                     ? const CircularProgressIndicator()

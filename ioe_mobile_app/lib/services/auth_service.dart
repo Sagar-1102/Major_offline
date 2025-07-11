@@ -29,12 +29,18 @@ class AuthService with ChangeNotifier {
     }
   }
 
-  Future<bool> signup({required String name, required String email, required String password, required String department, required int year}) async {
+  Future<bool> signup({
+    required String name, required String email, required String password,
+    required String department, required int? year, required UserRole role
+  }) async {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
       try {
-          await _apiService.signup(name: name, email: email, password: password, department: department, year: year);
+          await _apiService.signup(
+            name: name, email: email, password: password,
+            department: department, year: year, role: role
+          );
           _isLoading = false;
           notifyListeners();
           return true;

@@ -13,7 +13,6 @@ class Schedule {
     required this.endTime,
   });
 
-  // Factory constructor to create a Schedule from JSON data
   factory Schedule.fromJson(Map<String, dynamic> json) {
     return Schedule(
       id: json['id'],

@@ -4,13 +4,11 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, F
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from werkzeug.security import generate_password_hash
 
-# This setup uses a simple SQLite database file.
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'main_database.db')
 engine = create_engine(f'sqlite:///{db_path}')
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
-# --- Model Definitions ---
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
@@ -61,27 +59,10 @@ class Notice(Base):
             'author': self.author.to_dict()
         }
 
-def create_and_seed_db():
-    """Creates the database and adds initial data for testing."""
+def create_db():
+    """Creates the database tables if they don't exist."""
     Base.metadata.create_all(engine)
-    db_session = Session()
-    
-    if db_session.query(User).first():
-        print("Database already seeded.")
-        db_session.close()
-        return
-
-    print("Seeding database with initial data...")
-    
-    admin = User(name='Suresh Kumar', email='admin@ioe.edu.np', password_hash=generate_password_hash('admin123'), role='admin', department='BCT')
-    cr = User(name='Rita Sharma', email='cr@ioe.edu.np', password_hash=generate_password_hash('cr123'), role='cr', department='BCT', year=3)
-    student = User(name='Hari Bahadur', email='student@ioe.edu.np', password_hash=generate_password_hash('student123'), role='student', department='BCT', year=3)
-    
-    db_session.add_all([admin, cr, student])
-    db_session.commit()
-    
-    db_session.close()
-    print("Database seeded successfully.")
+    print("Database tables created successfully.")
 
 if __name__ == '__main__':
-    create_and_seed_db()
+    create_db()

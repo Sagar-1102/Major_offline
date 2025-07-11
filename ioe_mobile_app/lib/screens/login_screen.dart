@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/logo.png', height: 100),
+                Image.asset('assets/images/logo.png', height: 100),
                 const SizedBox(height: 20),
                 const Text('IOE Attendance Portal', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                 const SizedBox(height: 40),
