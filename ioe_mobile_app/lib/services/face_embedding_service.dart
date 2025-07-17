@@ -27,13 +27,13 @@ class FaceEmbeddingService {
 
   Future<List<double>?> getEmbedding(File imageFile) async {
     final inputImage = InputImage.fromFile(imageFile);
-    
+
     final faceDetector = FaceDetector(
       options: FaceDetectorOptions(
         performanceMode: FaceDetectorMode.accurate,
       ),
     );
-    
+
     final List<Face> faces = await faceDetector.processImage(inputImage);
     faceDetector.close();
 
@@ -42,16 +42,18 @@ class FaceEmbeddingService {
       return null;
     }
 
-    // Use the largest face found
-    final face = faces.first; 
+    final face = faces.first;
     final boundingBox = face.boundingBox;
 
     final imageBytes = await imageFile.readAsBytes();
     final originalImage = img.decodeImage(imageBytes);
 
-    if (originalImage == null) return null;
+    if (originalImage == null) {
+      // This is the critical change. It provides a clear error message.
+      print("Error: Could not decode image. The image format may be unsupported.");
+      return null;
+    }
 
-    // Crop the image to the detected face
     final croppedFace = img.copyCrop(
       originalImage,
       x: boundingBox.left.toInt(),
@@ -60,25 +62,21 @@ class FaceEmbeddingService {
       height: boundingBox.height.toInt(),
     );
 
-    // Resize to model's input size (112x112) and normalize
     final preprocessedImage = _preprocess(croppedFace, 112);
 
-    // Run inference
     final input = preprocessedImage.reshape([1, 112, 112, 3]);
     final output = List.filled(1 * 192, 0.0).reshape([1, 192]);
 
     _interpreter.run(input, output);
-    
-    // Normalize the output embedding vector
+
     final embedding = _normalize(output[0] as List<double>);
     return embedding;
   }
 
   Float32List _preprocess(img.Image image, int size) {
     final resizedImage = img.copyResize(image, width: size, height: size);
-    final imageBytes = resizedImage.getBytes(order: img.ChannelOrder.rgb);
     final imageAsList = Float32List(size * size * 3);
-    
+
     int i = 0;
     for (int y = 0; y < size; y++) {
       for (int x = 0; x < size; x++) {
@@ -90,7 +88,7 @@ class FaceEmbeddingService {
     }
     return imageAsList;
   }
-  
+
   List<double> _normalize(List<double> vector) {
     double sum = vector.map((e) => e * e).reduce((a, b) => a + b);
     double norm = 1.0 / (sum > 0 ? sum : 1e-12);
