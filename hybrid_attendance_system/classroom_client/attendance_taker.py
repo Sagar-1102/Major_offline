@@ -7,7 +7,7 @@ from deepface import DeepFace
 from recognition_core import FaceRecognitionCore
 
 LOCAL_DB_PATH = 'local_database.db'
-RECOGNITION_INTERVAL = 3
+RECOGNITION_INTERVAL = 3 # seconds
 
 def setup_local_db():
     conn = sqlite3.connect(LOCAL_DB_PATH)
@@ -72,26 +72,33 @@ def run_attendance_system():
 
             ret, frame = cap.read()
             if not ret: 
+                print("⚠️ Warning: Failed to capture frame from camera.")
                 time.sleep(1)
                 continue
 
             try:
+                # Use a more specific model and backend for consistency
                 results = DeepFace.represent(img_path=frame, model_name='FaceNet', detector_backend='mtcnn', enforce_detection=False)
-                for result in results.get("results", results):
-                    embedding = result.get('embedding', result)
+                for face_data in results:
+                    # 'embedding' is the key for the vector
+                    embedding = face_data.get('embedding')
+                    if not embedding:
+                        continue
+                        
                     user_id, user_name = recognizer.find_matching_face(embedding)
                     
                     if user_id and user_id not in students_marked_this_session:
                         mark_local_attendance(user_id, schedule_id)
                         students_marked_this_session.add(user_id)
-            except Exception:
-                pass
+            except Exception as e:
+                # Log the error instead of passing silently
+                print(f"❗️ Error during face recognition process: {e}")
         
         else:
             if current_class_session is not None:
-                print("🔕 Class session ended.")
+                print("🔕 Class session ended. Pausing until next scheduled class.")
                 current_class_session = None
-            time.sleep(10)
+            time.sleep(10) # Sleep longer when no class is active
             continue
             
         time.sleep(RECOGNITION_INTERVAL)

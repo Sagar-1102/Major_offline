@@ -20,7 +20,8 @@ class User {
       id: json['id'],
       name: json['name'],
       email: json['email'],
-      role: UserRole.values.firstWhere((e) => e.toString() == 'UserRole.${json['role']}'),
+      // UPDATE: Made role parsing more robust
+      role: UserRole.values.byName(json['role']),
       department: json['department'],
       year: json['year'],
       avatarUrl: json['avatarUrl'],

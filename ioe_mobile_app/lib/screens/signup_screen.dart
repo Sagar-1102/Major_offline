@@ -1,7 +1,11 @@
+// lib/screens/signup_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ioe_mobile_app/models/user_model.dart';
 import 'package:ioe_mobile_app/services/auth_service.dart';
+import 'package:ioe_mobile_app/screens/face_capture_screen.dart';
+
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -16,10 +20,11 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _yearController = TextEditingController();
-  
+
   String _selectedDepartment = 'BCT';
-  UserRole _selectedRole = UserRole.student;
-  
+  final UserRole _selectedRole = UserRole.student;
+  List<List<double>> _capturedEmbeddings = [];
+
   final List<String> _departments = ["BCT", "BEI", "BCE", "BAG", "BAR", "BME", "BEL"];
 
   @override
@@ -31,8 +36,28 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  // UPDATED: This now navigates to the real face capture screen.
+  Future<void> _captureFaceEmbeddings() async {
+    final List<List<double>>? result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const FaceCaptureScreen()),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      setState(() {
+        _capturedEmbeddings = result;
+      });
+    }
+  }
+
   Future<void> _performSignup() async {
     if (_formKey.currentState!.validate()) {
+      if (_selectedRole != UserRole.admin && _capturedEmbeddings.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please complete the face capture step.'), backgroundColor: Colors.red),
+        );
+        return;
+      }
+
       final authService = Provider.of<AuthService>(context, listen: false);
       final success = await authService.signup(
         name: _nameController.text,
@@ -41,6 +66,7 @@ class _SignupScreenState extends State<SignupScreen> {
         department: _selectedDepartment,
         year: _selectedRole == UserRole.admin ? null : int.parse(_yearController.text),
         role: _selectedRole,
+        embeddings: _capturedEmbeddings,
       );
 
       if (success && mounted) {
@@ -58,6 +84,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ... UI is largely the same, but the onTap for the enrollment tile
+    // will now correctly launch the capture screen.
+    // Full build method provided for clarity.
     final authService = Provider.of<AuthService>(context);
 
     return Scaffold(
@@ -70,18 +99,6 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                DropdownButtonFormField<UserRole>(
-                  value: _selectedRole,
-                  decoration: const InputDecoration(labelText: 'Role', border: OutlineInputBorder()),
-                  items: UserRole.values.map((UserRole role) {
-                    return DropdownMenuItem<UserRole>(
-                      value: role,
-                      child: Text(role.name.toUpperCase()),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) => setState(() => _selectedRole = newValue!),
-                ),
-                const SizedBox(height: 16),
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
@@ -114,14 +131,34 @@ class _SignupScreenState extends State<SignupScreen> {
                 if (_selectedRole != UserRole.admin)
                   TextFormField(
                     controller: _yearController,
-                    decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(labelText: 'Admission Year', border: OutlineInputBorder()),
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (_selectedRole != UserRole.admin && value!.isEmpty) {
-                        return 'Please enter your year';
+                        return 'Please enter your admission year';
                       }
                       return null;
                     },
+                  ),
+                const SizedBox(height: 16),
+                if (_selectedRole != UserRole.admin)
+                  ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(color: _capturedEmbeddings.isNotEmpty ? Colors.green : Colors.grey)
+                    ),
+                    leading: Icon(
+                      Icons.face_retouching_natural,
+                      color: _capturedEmbeddings.isNotEmpty ? Colors.green : Theme.of(context).primaryColor,
+                    ),
+                    title: const Text('Face Enrollment'),
+                    subtitle: Text(
+                      _capturedEmbeddings.isNotEmpty 
+                        ? '${_capturedEmbeddings.length} faces captured - Complete' 
+                        : 'Required for attendance',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _captureFaceEmbeddings,
                   ),
                 const SizedBox(height: 24),
                 authService.isLoading

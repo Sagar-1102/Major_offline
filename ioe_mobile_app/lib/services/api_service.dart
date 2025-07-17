@@ -21,16 +21,27 @@ class ApiService {
   }
 
   Future<User> signup({
-    required String name, required String email, required String password,
-    required String department, required int? year, required UserRole role
+    required String name,
+    required String email,
+    required String password,
+    required String department,
+    required int? year,
+    required UserRole role,
+    // UPDATE: Added embeddings parameter.
+    required List<List<double>> embeddings,
   }) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/signup'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-          'name': name, 'email': email, 'password': password,
-          'department': department, 'year': year,
-          'role': role.name
+        'name': name,
+        'email': email,
+        'password': password,
+        'department': department,
+        'year': year,
+        'role': role.name,
+        // UPDATE: Include embeddings in the request body.
+        'embeddings': embeddings,
       }),
     );
     if (response.statusCode == 201) {
@@ -39,6 +50,7 @@ class ApiService {
       throw Exception('Failed to sign up: ${jsonDecode(response.body)['error']}');
     }
   }
+  
 
   Future<List<Notice>> getNotices(User currentUser) async {
     final response = await http.get(Uri.parse('$_baseUrl/notices/${currentUser.id}'));

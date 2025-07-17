@@ -30,26 +30,38 @@ class AuthService with ChangeNotifier {
   }
 
   Future<bool> signup({
-    required String name, required String email, required String password,
-    required String department, required int? year, required UserRole role
+    required String name,
+    required String email,
+    required String password,
+    required String department,
+    required int? year,
+    required UserRole role,
+    // UPDATE: Added embeddings as a required parameter for signup.
+    required List<List<double>> embeddings,
   }) async {
-      _isLoading = true;
-      _errorMessage = null;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _apiService.signup(
+        name: name,
+        email: email,
+        password: password,
+        department: department,
+        year: year,
+        role: role,
+        // UPDATE: Pass embeddings to the API service.
+        embeddings: embeddings,
+      );
+      _isLoading = false;
       notifyListeners();
-      try {
-          await _apiService.signup(
-            name: name, email: email, password: password,
-            department: department, year: year, role: role
-          );
-          _isLoading = false;
-          notifyListeners();
-          return true;
-      } catch (e) {
-          _errorMessage = e.toString();
-          _isLoading = false;
-          notifyListeners();
-          return false;
-      }
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   Future<void> logout() async {

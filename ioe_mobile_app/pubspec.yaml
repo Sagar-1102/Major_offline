@@ -10,16 +10,23 @@ dependencies:
   flutter:
     sdk: flutter
   provider: ^6.1.2
-  intl: ^0.19.0
+  intl: ^0.20.2
   lucide_icons: ^0.257.0
-  http: ^0.13.6
+  http: ^1.4.0
+  camera: ^0.11.2  # For camera access
+  google_mlkit_face_detection: ^0.13.1 # To find faces in the image
+  tflite_flutter: ^0.11.0             # To run the face recognition model
+  image: ^4.1.0 
+  
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
+  
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/logo.png
+    # - assets/models/mobile_facenet.tflite

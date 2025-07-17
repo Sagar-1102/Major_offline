@@ -90,7 +90,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFFFFF),
+              Color(0x00ffffff),
               Color(0xFFF7FAFF),
             ],
           ),
