@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:ioe_mobile_app/services/api_service.dart';
 import 'package:ioe_mobile_app/services/auth_service.dart';
 import 'package:ioe_mobile_app/models/schedule_model.dart';
-import 'package:ioe_mobile_app/widgets/add_schedule_dialog.dart'; // Import the AddScheduleDialog
+import 'package:ioe_mobile_app/widgets/add_schedule_dialog.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -23,7 +23,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
   @override
   void initState() {
     super.initState();
-    _loadSchedules();
+    _scheduleFuture = _loadSchedules();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -49,11 +49,16 @@ class _ScheduleScreenState extends State<ScheduleScreen>
     super.dispose();
   }
 
-  void _loadSchedules() {
+  Future<List<Schedule>> _loadSchedules() {
     final apiService = Provider.of<ApiService>(context, listen: false);
-    final currentUser = Provider.of<AuthService>(context, listen: false).currentUser!;
+    final currentUser =
+        Provider.of<AuthService>(context, listen: false).currentUser!;
+    return apiService.getSchedules(currentUser);
+  }
+
+  void _refreshSchedules() {
     setState(() {
-      _scheduleFuture = apiService.getSchedules(currentUser);
+      _scheduleFuture = _loadSchedules();
     });
   }
 
@@ -61,27 +66,34 @@ class _ScheduleScreenState extends State<ScheduleScreen>
     showDialog(
       context: context,
       builder: (context) => AddScheduleDialog(
-        onScheduleAdded: _loadSchedules, // Refresh schedules after adding
+        onScheduleAdded: _refreshSchedules,
       ),
     );
   }
 
-  // Map subject names to icons
   IconData getSubjectIcon(String subject) {
     final subjectLower = subject.toLowerCase();
     if (subjectLower.contains('math')) return Icons.calculate;
-    if (subjectLower.contains('computer network') || subjectLower.contains('network')) return Icons.network_check;
+    if (subjectLower.contains('computer network') ||
+        subjectLower.contains('network')) return Icons.network_check;
     if (subjectLower.contains('physics')) return Icons.science;
     if (subjectLower.contains('chemistry')) return Icons.biotech;
     if (subjectLower.contains('biology')) return Icons.local_florist;
     if (subjectLower.contains('english')) return Icons.book;
     if (subjectLower.contains('history')) return Icons.history_edu;
-    return Icons.book_rounded; // Default icon
+    return Icons.book_rounded;
   }
 
   @override
   Widget build(BuildContext context) {
-    final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    final days = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday'
+    ];
 
     return Scaffold(
       body: Container(
@@ -97,7 +109,6 @@ class _ScheduleScreenState extends State<ScheduleScreen>
         ),
         child: Column(
           children: [
-            // Compact Header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
@@ -153,7 +164,6 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                 ],
               ),
             ),
-            // Schedule List
             Expanded(
               child: FutureBuilder<List<Schedule>>(
                 future: _scheduleFuture,
@@ -161,7 +171,8 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2A6EBB)),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Color(0xFF2A6EBB)),
                       ),
                     );
                   }
@@ -205,7 +216,9 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                     padding: const EdgeInsets.all(16),
                     itemCount: days.length,
                     itemBuilder: (context, index) {
-                      final daySchedules = schedules.where((s) => s.dayOfWeek == index).toList();
+                      final daySchedules = schedules
+                          .where((s) => s.dayOfWeek == index)
+                          .toList();
                       return FadeTransition(
                         opacity: _fadeAnimation,
                         child: SlideTransition(
@@ -214,9 +227,11 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF8FAFF),
                                     borderRadius: BorderRadius.circular(12),
@@ -241,7 +256,8 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                               ),
                               if (daySchedules.isEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
                                   child: Text(
                                     'No classes scheduled for this day.',
                                     style: TextStyle(
@@ -253,44 +269,49 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                                 )
                               else
                                 ...daySchedules.map((s) => FadeTransition(
-                                  opacity: _fadeAnimation,
-                                  child: SlideTransition(
-                                    position: _slideAnimation,
-                                    child: Card(
-                                      margin: const EdgeInsets.only(bottom: 12, left: 8, right: 8),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      elevation: 4,
-                                      color: const Color(0xFFF8FAFF),
-                                      child: ListTile(
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                        leading: Icon(
-                                          getSubjectIcon(s.subject),
-                                          color: const Color(0xFF2A6EBB),
-                                          size: 24,
-                                        ),
-                                        title: Text(
-                                          s.subject,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 16,
-                                            color: Color(0xFF2C3E50),
-                                            fontFamily: 'Roboto',
+                                      opacity: _fadeAnimation,
+                                      child: SlideTransition(
+                                        position: _slideAnimation,
+                                        child: Card(
+                                          margin: const EdgeInsets.only(
+                                              bottom: 12, left: 8, right: 8),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                          elevation: 4,
+                                          color: const Color(0xFFF8FAFF),
+                                          child: ListTile(
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 8),
+                                            leading: Icon(
+                                              getSubjectIcon(s.subject),
+                                              color: const Color(0xFF2A6EBB),
+                                              size: 24,
+                                            ),
+                                            title: Text(
+                                              s.subject,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 16,
+                                                color: Color(0xFF2C3E50),
+                                                fontFamily: 'Roboto',
+                                              ),
+                                            ),
+                                            subtitle: Text(
+                                              '${s.startTime} - ${s.endTime}',
+                                              style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 14,
+                                                fontFamily: 'Roboto',
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                        subtitle: Text(
-                                          '${s.startTime} - ${s.endTime}',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                            fontFamily: 'Roboto',
-                                          ),
-                                        ),
                                       ),
-                                    ),
-                                  ),
-                                )),
+                                    )),
                             ],
                           ),
                         ),

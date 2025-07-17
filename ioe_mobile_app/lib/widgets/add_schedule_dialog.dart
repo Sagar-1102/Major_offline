@@ -19,7 +19,8 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
   final _subjectController = TextEditingController();
   int _selectedDay = 0;
   TimeOfDay _startTime = TimeOfDay.now();
-  TimeOfDay _endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
+  TimeOfDay _endTime =
+      TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -78,9 +79,13 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
   }
 
   void _addSchedule() async {
+    if (_isSubmitting) return;
+
     final now = DateTime.now();
-    final startDateTime = DateTime(now.year, now.month, now.day, _startTime.hour, _startTime.minute);
-    final endDateTime = DateTime(now.year, now.month, now.day, _endTime.hour, _endTime.minute);
+    final startDateTime =
+        DateTime(now.year, now.month, now.day, _startTime.hour, _startTime.minute);
+    final endDateTime =
+        DateTime(now.year, now.month, now.day, _endTime.hour, _endTime.minute);
     if (_formKey.currentState!.validate() && endDateTime.isAfter(startDateTime)) {
       setState(() {
         _isSubmitting = true;
@@ -89,7 +94,8 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
 
       try {
         final apiService = Provider.of<ApiService>(context, listen: false);
-        final currentUser = Provider.of<AuthService>(context, listen: false).currentUser!;
+        final currentUser =
+            Provider.of<AuthService>(context, listen: false).currentUser!;
         await apiService.addSchedule(
           currentUser,
           _subjectController.text,
@@ -99,24 +105,30 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
         );
 
         widget.onScheduleAdded?.call();
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Schedule added successfully!'),
-            backgroundColor: const Color(0xFF2A6EBB),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Schedule added successfully!'),
+              backgroundColor: const Color(0xFF2A6EBB),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              duration: const Duration(seconds: 3),
             ),
-            duration: const Duration(seconds: 3),
-          ),
-        );
+          );
+        }
       } catch (e) {
         setState(() {
           _errorMessage = e.toString();
-          _isSubmitting = false;
-          _animationController.forward(from: 0.0);
         });
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
       }
     } else {
       setState(() {
@@ -170,7 +182,8 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           backgroundColor: Colors.transparent,
           child: Container(
             constraints: const BoxConstraints(maxWidth: 400),
@@ -205,10 +218,10 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Header Section
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                          padding:
+                              const EdgeInsets.fromLTRB(24, 24, 24, 16),
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               colors: [Color(0xFF2A6EBB), Color(0xFF3B8DE3)],
@@ -261,7 +274,6 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                             ],
                           ),
                         ),
-                        // Form Section
                         Padding(
                           padding: const EdgeInsets.all(24),
                           child: Column(
@@ -281,18 +293,21 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                                     filled: true,
                                     fillColor: const Color(0xFFF8FAFF),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius:
+                                          BorderRadius.circular(16),
                                       borderSide: BorderSide.none,
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius:
+                                          BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: Color(0xFFE0E6EE),
                                         width: 1.5,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius:
+                                          BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: Color(0xFF2A6EBB),
                                         width: 2,
@@ -330,18 +345,21 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                                     filled: true,
                                     fillColor: const Color(0xFFF8FAFF),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius:
+                                          BorderRadius.circular(16),
                                       borderSide: BorderSide.none,
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius:
+                                          BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: Color(0xFFE0E6EE),
                                         width: 1.5,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius:
+                                          BorderRadius.circular(16),
                                       borderSide: const BorderSide(
                                         color: Color(0xFF2A6EBB),
                                         width: 2,
@@ -358,30 +376,37 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                                   items: const [
                                     DropdownMenuItem(
                                       value: 0,
-                                      child: AnimatedDropdownItem(label: 'Sunday'),
+                                      child:
+                                          AnimatedDropdownItem(label: 'Sunday'),
                                     ),
                                     DropdownMenuItem(
                                       value: 1,
-                                      child: AnimatedDropdownItem(label: 'Monday'),
+                                      child:
+                                          AnimatedDropdownItem(label: 'Monday'),
                                     ),
                                     DropdownMenuItem(
                                       value: 2,
-                                      child: AnimatedDropdownItem(label: 'Tuesday'),
+                                      child: AnimatedDropdownItem(
+                                          label: 'Tuesday'),
                                     ),
                                     DropdownMenuItem(
                                       value: 3,
-                                      child: AnimatedDropdownItem(label: 'Wednesday'),
+                                      child: AnimatedDropdownItem(
+                                          label: 'Wednesday'),
                                     ),
                                     DropdownMenuItem(
                                       value: 4,
-                                      child: AnimatedDropdownItem(label: 'Thursday'),
+                                      child: AnimatedDropdownItem(
+                                          label: 'Thursday'),
                                     ),
                                     DropdownMenuItem(
                                       value: 5,
-                                      child: AnimatedDropdownItem(label: 'Friday'),
+                                      child:
+                                          AnimatedDropdownItem(label: 'Friday'),
                                     ),
                                   ],
-                                  onChanged: (value) => setState(() => _selectedDay = value!),
+                                  onChanged: (value) =>
+                                      setState(() => _selectedDay = value!),
                                   dropdownColor: const Color(0xFFF8FAFF),
                                   borderRadius: BorderRadius.circular(12),
                                   style: const TextStyle(
@@ -390,7 +415,14 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                                     fontFamily: 'Roboto',
                                   ),
                                   selectedItemBuilder: (context) => [
-                                    for (final day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'])
+                                    for (final day in [
+                                      'Sunday',
+                                      'Monday',
+                                      'Tuesday',
+                                      'Wednesday',
+                                      'Thursday',
+                                      'Friday'
+                                    ])
                                       Text(
                                         day,
                                         style: const TextStyle(
@@ -406,9 +438,11 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                               SlideTransition(
                                 position: _slideAnimation,
                                 child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius:
+                                        BorderRadius.circular(16),
                                     side: const BorderSide(
                                       color: Color(0xFFE0E6EE),
                                       width: 1.5,
@@ -435,9 +469,11 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                               SlideTransition(
                                 position: _slideAnimation,
                                 child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius:
+                                        BorderRadius.circular(16),
                                     side: const BorderSide(
                                       color: Color(0xFFE0E6EE),
                                       width: 1.5,
@@ -467,7 +503,8 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                                   builder: (context, child) {
                                     return Transform.translate(
                                       offset: Offset(
-                                        _shakeAnimation.value * (Random().nextBool() ? 1 : -1),
+                                        _shakeAnimation.value *
+                                            (Random().nextBool() ? 1 : -1),
                                         0,
                                       ),
                                       child: child,
@@ -480,7 +517,8 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                                     ),
                                     decoration: BoxDecoration(
                                       color: Colors.red[50],
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius:
+                                          BorderRadius.circular(12),
                                       border: Border.all(
                                         color: Colors.red[200]!,
                                         width: 1,
@@ -500,11 +538,13 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                               ],
                               const SizedBox(height: 24),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
                                       style: TextButton.styleFrom(
                                         foregroundColor: Colors.grey[600],
                                         padding: const EdgeInsets.symmetric(
@@ -523,30 +563,37 @@ class _AddScheduleDialogState extends State<AddScheduleDialog>
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: ElevatedButton.icon(
-                                      onPressed: _isSubmitting ? null : _addSchedule,
+                                      onPressed: _isSubmitting
+                                          ? null
+                                          : _addSchedule,
                                       icon: _isSubmitting
                                           ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                        ),
-                                      )
+                                              width: 16,
+                                              height: 16,
+                                              child:
+                                                  CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(Colors.white),
+                                              ),
+                                            )
                                           : const Icon(
-                                        Icons.add_rounded,
-                                        size: 18,
-                                      ),
+                                              Icons.add_rounded,
+                                              size: 18,
+                                            ),
                                       label: const Text('Add'),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF2A6EBB),
+                                        backgroundColor:
+                                            const Color(0xFF2A6EBB),
                                         foregroundColor: Colors.white,
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
                                           vertical: 12,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         elevation: 2,
                                         textStyle: const TextStyle(

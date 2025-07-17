@@ -54,7 +54,9 @@ class _MainShellState extends State<MainShell> {
       child: Column(
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text(currentUser.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            accountName: Text(currentUser.name,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             accountEmail: Text(currentUser.email),
             currentAccountPicture: CircleAvatar(
               backgroundImage: NetworkImage(currentUser.avatarUrl),
@@ -76,7 +78,7 @@ class _MainShellState extends State<MainShell> {
                   selectedTileColor: Colors.blue.withOpacity(0.1),
                   onTap: () {
                     setState(() => _selectedIndex = index);
-                    Navigator.pop(context); // Close the drawer
+                    Navigator.pop(context);
                   },
                 );
               },
@@ -86,8 +88,30 @@ class _MainShellState extends State<MainShell> {
           ListTile(
             leading: const Icon(LucideIcons.logOut, color: Colors.red),
             title: const Text('Logout', style: TextStyle(color: Colors.red)),
-            onTap: () {
-              Provider.of<AuthService>(context, listen: false).logout();
+            onTap: () async {
+              final bool? shouldLogout = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Confirm Logout'),
+                  content: const Text('Are you sure you want to log out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (shouldLogout == true) {
+                if (context.mounted) {
+                  Provider.of<AuthService>(context, listen: false).logout();
+                }
+              }
             },
           ),
           const SizedBox(height: 10),
@@ -125,13 +149,15 @@ class _MainShellState extends State<MainShell> {
       return [
         IconButton(
           icon: const Icon(LucideIcons.send),
-          onPressed: () => showDialog(context: context, builder: (_) => const SendNoticeDialog()),
+          onPressed: () =>
+              showDialog(context: context, builder: (_) => const SendNoticeDialog()),
           tooltip: 'Send Notice',
         ),
         if (role == UserRole.cr)
           IconButton(
             icon: const Icon(LucideIcons.calendarPlus),
-            onPressed: () => showDialog(context: context, builder: (_) => const AddScheduleDialog()),
+            onPressed: () =>
+                showDialog(context: context, builder: (_) => const AddScheduleDialog()),
             tooltip: 'Add Schedule',
           ),
         const SizedBox(width: 10),

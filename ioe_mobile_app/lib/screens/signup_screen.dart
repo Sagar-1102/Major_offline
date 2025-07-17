@@ -1,11 +1,8 @@
-// lib/screens/signup_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ioe_mobile_app/models/user_model.dart';
 import 'package:ioe_mobile_app/services/auth_service.dart';
 import 'package:ioe_mobile_app/screens/face_capture_screen.dart';
-
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -24,8 +21,17 @@ class _SignupScreenState extends State<SignupScreen> {
   String _selectedDepartment = 'BCT';
   final UserRole _selectedRole = UserRole.student;
   List<List<double>> _capturedEmbeddings = [];
+  bool _isLoading = false;
 
-  final List<String> _departments = ["BCT", "BEI", "BCE", "BAG", "BAR", "BME", "BEL"];
+  final List<String> _departments = [
+    "BCT",
+    "BEI",
+    "BCE",
+    "BAG",
+    "BAR",
+    "BME",
+    "BEL"
+  ];
 
   @override
   void dispose() {
@@ -36,7 +42,6 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  // UPDATED: This now navigates to the real face capture screen.
   Future<void> _captureFaceEmbeddings() async {
     final List<List<double>>? result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const FaceCaptureScreen()),
@@ -53,10 +58,16 @@ class _SignupScreenState extends State<SignupScreen> {
     if (_formKey.currentState!.validate()) {
       if (_selectedRole != UserRole.admin && _capturedEmbeddings.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please complete the face capture step.'), backgroundColor: Colors.red),
+          const SnackBar(
+              content: Text('Please complete the face capture step.'),
+              backgroundColor: Colors.red),
         );
         return;
       }
+
+      setState(() {
+        _isLoading = true;
+      });
 
       final authService = Provider.of<AuthService>(context, listen: false);
       final success = await authService.signup(
@@ -64,19 +75,29 @@ class _SignupScreenState extends State<SignupScreen> {
         email: _emailController.text,
         password: _passwordController.text,
         department: _selectedDepartment,
-        year: _selectedRole == UserRole.admin ? null : int.parse(_yearController.text),
+        year: _selectedRole == UserRole.admin
+            ? null
+            : int.parse(_yearController.text),
         role: _selectedRole,
         embeddings: _capturedEmbeddings,
       );
 
+      setState(() {
+        _isLoading = false;
+      });
+
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Signup successful! Please log in.'), backgroundColor: Colors.green),
+          const SnackBar(
+              content: Text('Signup successful! Please log in.'),
+              backgroundColor: Colors.green),
         );
         Navigator.of(context).pop();
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authService.errorMessage ?? 'Signup failed.'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text(authService.errorMessage ?? 'Signup failed.'),
+              backgroundColor: Colors.red),
         );
       }
     }
@@ -84,11 +105,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ... UI is largely the same, but the onTap for the enrollment tile
-    // will now correctly launch the capture screen.
-    // Full build method provided for clarity.
-    final authService = Provider.of<AuthService>(context);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Create Account')),
       body: Center(
@@ -101,37 +117,48 @@ class _SignupScreenState extends State<SignupScreen> {
               children: [
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
-                  validator: (value) => value!.isEmpty ? 'Please enter your name' : null,
+                  decoration: const InputDecoration(
+                      labelText: 'Full Name', border: OutlineInputBorder()),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter your name' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(
+                      labelText: 'Email', border: OutlineInputBorder()),
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) => value!.isEmpty ? 'Please enter an email' : null,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter an email' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(
+                      labelText: 'Password', border: OutlineInputBorder()),
                   obscureText: true,
-                  validator: (value) => value!.isEmpty ? 'Please enter a password' : null,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter a password' : null,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _selectedDepartment,
-                  decoration: const InputDecoration(labelText: 'Department', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(
+                      labelText: 'Department', border: OutlineInputBorder()),
                   items: _departments.map((String value) {
-                    return DropdownMenuItem<String>(value: value, child: Text(value));
+                    return DropdownMenuItem<String>(
+                        value: value, child: Text(value));
                   }).toList(),
-                  onChanged: (newValue) => setState(() => _selectedDepartment = newValue!),
+                  onChanged: (newValue) =>
+                      setState(() => _selectedDepartment = newValue!),
                 ),
                 const SizedBox(height: 16),
                 if (_selectedRole != UserRole.admin)
                   TextFormField(
                     controller: _yearController,
-                    decoration: const InputDecoration(labelText: 'Admission Year', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                        labelText: 'Admission Year',
+                        border: OutlineInputBorder()),
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (_selectedRole != UserRole.admin && value!.isEmpty) {
@@ -144,24 +171,28 @@ class _SignupScreenState extends State<SignupScreen> {
                 if (_selectedRole != UserRole.admin)
                   ListTile(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(color: _capturedEmbeddings.isNotEmpty ? Colors.green : Colors.grey)
-                    ),
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(
+                            color: _capturedEmbeddings.isNotEmpty
+                                ? Colors.green
+                                : Colors.grey)),
                     leading: Icon(
                       Icons.face_retouching_natural,
-                      color: _capturedEmbeddings.isNotEmpty ? Colors.green : Theme.of(context).primaryColor,
+                      color: _capturedEmbeddings.isNotEmpty
+                          ? Colors.green
+                          : Theme.of(context).primaryColor,
                     ),
                     title: const Text('Face Enrollment'),
                     subtitle: Text(
-                      _capturedEmbeddings.isNotEmpty 
-                        ? '${_capturedEmbeddings.length} faces captured - Complete' 
-                        : 'Required for attendance',
+                      _capturedEmbeddings.isNotEmpty
+                          ? '${_capturedEmbeddings.length} faces captured - Complete'
+                          : 'Required for attendance',
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _captureFaceEmbeddings,
                   ),
                 const SizedBox(height: 24),
-                authService.isLoading
+                _isLoading
                     ? const CircularProgressIndicator()
                     : SizedBox(
                         width: double.infinity,
@@ -171,7 +202,9 @@ class _SignupScreenState extends State<SignupScreen> {
                             backgroundColor: Theme.of(context).primaryColor,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text('Sign Up', style: TextStyle(fontSize: 18, color: Colors.white)),
+                          child: const Text('Sign Up',
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.white)),
                         ),
                       ),
               ],

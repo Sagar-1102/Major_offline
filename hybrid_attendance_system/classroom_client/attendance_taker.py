@@ -7,7 +7,7 @@ from deepface import DeepFace
 from recognition_core import FaceRecognitionCore
 
 LOCAL_DB_PATH = 'local_database.db'
-RECOGNITION_INTERVAL = 3 # seconds
+RECOGNITION_INTERVAL = 3  # seconds
 
 def setup_local_db():
     conn = sqlite3.connect(LOCAL_DB_PATH)
@@ -43,7 +43,7 @@ def mark_local_attendance(user_id, schedule_id):
 
 def run_attendance_system():
     setup_local_db()
-    
+
     recognizer = FaceRecognitionCore()
     user_rows = get_data_from_local_db("SELECT id, name, embeddings FROM users")
     users = [(row[0], row[1], json.loads(row[2])) for row in user_rows]
@@ -53,9 +53,9 @@ def run_attendance_system():
     if not cap.isOpened():
         print("❌ Error: Cannot open camera.")
         return
-        
+
     print("🚀 Automated attendance system is running...")
-    
+
     current_class_session = None
     students_marked_this_session = set()
 
@@ -64,43 +64,40 @@ def run_attendance_system():
 
         if schedule_info:
             schedule_id, end_time_str = schedule_info
-            
+
             if schedule_id != current_class_session:
                 current_class_session = schedule_id
                 students_marked_this_session.clear()
                 print(f"🔔 New class session started: ID {schedule_id}. Scanning until {end_time_str}.")
 
             ret, frame = cap.read()
-            if not ret: 
+            if not ret:
                 print("⚠️ Warning: Failed to capture frame from camera.")
                 time.sleep(1)
                 continue
 
             try:
-                # Use a more specific model and backend for consistency
                 results = DeepFace.represent(img_path=frame, model_name='FaceNet', detector_backend='mtcnn', enforce_detection=False)
                 for face_data in results:
-                    # 'embedding' is the key for the vector
                     embedding = face_data.get('embedding')
                     if not embedding:
                         continue
-                        
+
                     user_id, user_name = recognizer.find_matching_face(embedding)
-                    
+
                     if user_id and user_id not in students_marked_this_session:
                         mark_local_attendance(user_id, schedule_id)
                         students_marked_this_session.add(user_id)
             except Exception as e:
-                # Log the error instead of passing silently
                 print(f"❗️ Error during face recognition process: {e}")
-        
+
         else:
             if current_class_session is not None:
                 print("🔕 Class session ended. Pausing until next scheduled class.")
                 current_class_session = None
-            time.sleep(10) # Sleep longer when no class is active
+            time.sleep(10)
             continue
-            
+
         time.sleep(RECOGNITION_INTERVAL)
 
     cap.release()
