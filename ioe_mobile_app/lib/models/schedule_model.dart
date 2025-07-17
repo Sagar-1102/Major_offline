@@ -13,14 +13,14 @@ class Schedule {
     required this.endTime,
   });
 
-  factory Schedule.fromJson(Map<String, dynamic> json) {
-    // UPDATE: Correctly map keys from the backend API
-    return Schedule(
-      id: json['id'],
-      subject: json['subject_name'],
-      dayOfWeek: json['day_of_week'],
-      startTime: json['start_time'],
-      endTime: json['end_time'],
-    );
-  }
+factory Schedule.fromJson(Map<String, dynamic> json) {
+  // UPDATE: Correctly map keys from the backend API
+  return Schedule(
+    id: json['id'],
+    subject: json['subject_name'], // Correct key
+    dayOfWeek: json['day_of_week'],
+    startTime: json['start_time'],
+    endTime: json['end_time'],
+  );
+}
 }

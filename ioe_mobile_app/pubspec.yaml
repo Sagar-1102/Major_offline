@@ -29,4 +29,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/logo.png
-    # - assets/models/mobile_facenet.tflite
+    - assets/models/mobile_facenet.tflite

@@ -15,16 +15,19 @@ class User {
     required this.avatarUrl,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'],
-      name: json['name'],
-      email: json['email'],
-      // UPDATE: Made role parsing more robust
-      role: UserRole.values.byName(json['role']),
-      department: json['department'],
-      year: json['year'],
-      avatarUrl: json['avatarUrl'],
-    );
-  }
+factory User.fromJson(Map<String, dynamic> json) {
+  return User(
+    id: json['id'],
+    name: json['name'],
+    email: json['email'],
+    // UPDATE: Made role parsing more robust
+    role: UserRole.values.firstWhere(
+      (e) => e.toString() == 'UserRole.${json['role']}',
+      orElse: () => UserRole.student, // Fallback to a default role
+    ),
+    department: json['department'],
+    year: json['year'],
+    avatarUrl: json['avatarUrl'],
+  );
+}
 }

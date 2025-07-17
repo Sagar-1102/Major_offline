@@ -119,12 +119,13 @@ def add_schedule():
         return jsonify({'error': 'Unauthorized'}), 403
         
     new_schedule = Schedule(
-        department=author.department, year=author.year,
-        subject_name=data.get('subject'), 
-        day_of_week=data.get('dayOfWeek'),
-        start_time=data.get('startTime'), 
-        end_time=data.get('endTime')
-    )
+    department=author.department, year=author.year,
+    subject_name=data.get('subject'), 
+    day_of_week=data.get('dayOfWeek'),
+    start_time=data.get('startTime'), 
+    end_time=data.get('endTime'),
+    cr_author_id=author.id  # Added the missing foreign key
+)
     db_session.add(new_schedule)
     db_session.commit()
     schedule_dict = new_schedule.to_dict()

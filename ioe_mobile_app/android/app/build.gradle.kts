@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.ioe_mobile_app"
-    compileSdk = 35
+    compileSdk = 34
     ndkVersion = "27.0.12077973"
 
     compileOptions {

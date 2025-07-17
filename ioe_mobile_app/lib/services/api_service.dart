@@ -5,8 +5,11 @@ import 'package:ioe_mobile_app/models/notice_model.dart';
 import 'package:ioe_mobile_app/models/schedule_model.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://10.0.2.2:5000/api';
-
+  // Use a configurable base URL
+  static const String _baseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://10.0.2.2:5000/api',
+  );
   Future<User> login(String email, String password) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/login'),

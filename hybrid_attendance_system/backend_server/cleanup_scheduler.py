@@ -32,7 +32,7 @@ def delete_graduated_students():
             expiry_year = student.year + duration
 
             # If the current year is past the student's expiry year, delete them
-            if current_year > expiry_year:
+            if current_year >= expiry_year:
                 print(f"DELETING -> User: {student.name} (ID: {student.id}), Admission: {student.year}, Dept: {student.department}. Expiry Year was {expiry_year}.")
                 db_session.delete(student)
                 deleted_count += 1
