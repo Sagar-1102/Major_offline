@@ -75,7 +75,9 @@ class _ScheduleScreenState extends State<ScheduleScreen>
     final subjectLower = subject.toLowerCase();
     if (subjectLower.contains('math')) return Icons.calculate;
     if (subjectLower.contains('computer network') ||
-        subjectLower.contains('network')) return Icons.network_check;
+        subjectLower.contains('network')) {
+      return Icons.network_check;
+    }
     if (subjectLower.contains('physics')) return Icons.science;
     if (subjectLower.contains('chemistry')) return Icons.biotech;
     if (subjectLower.contains('biology')) return Icons.local_florist;

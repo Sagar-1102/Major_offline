@@ -8,7 +8,7 @@ class ApiService {
   // Use a configurable base URL
   static const String _baseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://10.0.2.2:5000/api',
+    defaultValue: 'http://192.168.1.10:5000/api',
   );
   Future<User> login(String email, String password) async {
     final response = await http.post(
