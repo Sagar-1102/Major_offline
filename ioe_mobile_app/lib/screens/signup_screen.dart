@@ -19,7 +19,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _yearController = TextEditingController();
 
   String _selectedDepartment = 'BCT';
-  final UserRole _selectedRole = UserRole.student;
+  UserRole _selectedRole = UserRole.student; // Default role is student
   List<List<double>> _capturedEmbeddings = [];
   bool _isLoading = false;
 
@@ -56,7 +56,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _performSignup() async {
     if (_formKey.currentState!.validate()) {
-      if (_selectedRole != UserRole.admin && _capturedEmbeddings.isEmpty) {
+      if (_selectedRole == UserRole.student && _capturedEmbeddings.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Please complete the face capture step.'),
@@ -141,6 +141,21 @@ class _SignupScreenState extends State<SignupScreen> {
                       value!.isEmpty ? 'Please enter a password' : null,
                 ),
                 const SizedBox(height: 16),
+                // Role Selection Dropdown
+                DropdownButtonFormField<UserRole>(
+                  value: _selectedRole,
+                  decoration: const InputDecoration(
+                      labelText: 'Role', border: OutlineInputBorder()),
+                  items: const [
+                    DropdownMenuItem<UserRole>(
+                        value: UserRole.student, child: Text('Student')),
+                    DropdownMenuItem<UserRole>(
+                        value: UserRole.admin, child: Text('Admin')),
+                  ],
+                  onChanged: (newValue) =>
+                      setState(() => _selectedRole = newValue!),
+                ),
+                const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _selectedDepartment,
                   decoration: const InputDecoration(
@@ -153,7 +168,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       setState(() => _selectedDepartment = newValue!),
                 ),
                 const SizedBox(height: 16),
-                if (_selectedRole != UserRole.admin)
+                if (_selectedRole == UserRole.student)
                   TextFormField(
                     controller: _yearController,
                     decoration: const InputDecoration(
@@ -161,14 +176,15 @@ class _SignupScreenState extends State<SignupScreen> {
                         border: OutlineInputBorder()),
                     keyboardType: TextInputType.number,
                     validator: (value) {
-                      if (_selectedRole != UserRole.admin && value!.isEmpty) {
+                      if (_selectedRole == UserRole.student &&
+                          value!.isEmpty) {
                         return 'Please enter your admission year';
                       }
                       return null;
                     },
                   ),
-                const SizedBox(height: 16),
-                if (_selectedRole != UserRole.admin)
+                if (_selectedRole == UserRole.student) const SizedBox(height: 16),
+                if (_selectedRole == UserRole.student)
                   ListTile(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),

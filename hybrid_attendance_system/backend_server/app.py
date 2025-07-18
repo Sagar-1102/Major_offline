@@ -28,14 +28,19 @@ def signup():
     if db_session.query(User).filter_by(email=data.get('email')).first():
         return jsonify({'error': 'Email already exists'}), 409
     
+    # Determine the role from the request, default to 'student'
+    role = data.get('role', 'student')
+    if role not in ['student', 'admin']:
+        return jsonify({'error': 'Invalid role specified'}), 400
+
     new_user = User(
         name=data.get('name'),
         email=data.get('email'),
         password_hash=generate_password_hash(data.get('password')),
         department=data.get('department'),
-        year=int(data.get('year')),
-        role='student',
-        embeddings=json.dumps(data.get('embeddings', [])) # Assume embeddings are sent on signup
+        year=int(data.get('year')) if data.get('year') else None,
+        role=role, 
+        embeddings=json.dumps(data.get('embeddings', []))
     )
     db_session.add(new_user)
     db_session.commit()
@@ -124,7 +129,7 @@ def add_schedule():
     day_of_week=data.get('dayOfWeek'),
     start_time=data.get('startTime'), 
     end_time=data.get('endTime'),
-    cr_author_id=author.id  # Added the missing foreign key
+    cr_author_id=author.id 
 )
     db_session.add(new_schedule)
     db_session.commit()
@@ -144,7 +149,7 @@ def get_attendance(user_id):
     db_session.close()
     return jsonify([rec.to_dict() for rec in attendance_records])
 
-# --- CORRECTED: ADDED MISSING SYNC ENDPOINTS ---
+# --- SYNC ENDPOINTS ---
 @app.route('/api/sync/attendance', methods=['POST'])
 def sync_attendance():
     data = request.json
@@ -155,7 +160,6 @@ def sync_attendance():
     db_session = Session()
     try:
         for rec in records:
-            # The client should prevent duplicates, but we can double-check here if needed
             new_attendance = Attendance(
                 user_id=rec['user_id'],
                 schedule_id=rec['schedule_id'],
@@ -175,7 +179,6 @@ def sync_attendance():
 def get_updates():
     last_sync_time_str = request.args.get('last_sync_time')
     
-    # Parse last sync time, or use a very old date if it's the first sync
     if last_sync_time_str:
         last_sync_time = datetime.datetime.fromisoformat(last_sync_time_str)
     else:
@@ -183,7 +186,6 @@ def get_updates():
 
     db_session = Session()
     
-    # Find all users and schedules updated since the last sync
     updated_users = db_session.query(User).filter(User.updated_at > last_sync_time).all()
     updated_schedules = db_session.query(Schedule).filter(Schedule.updated_at > last_sync_time).all()
     
